@@ -2,9 +2,6 @@
 
 Interactive menu-driven CLI for Cisco ISE 3.5 Profiler OpenAPI operations.
 
-**Author:** Emmanuel Cano - Senior Security Consulting Engineer  
-**Email:** ecanogut@cisco.com
-
 ## Installation
 
 Install dependencies:
@@ -106,3 +103,11 @@ npx -y newman run ISE_Profiler_OpenAPI.postman_collection.json \
   --env-var password=webinar \
   -k --reporters cli
 ```
+
+---
+
+## Author
+
+**Emmanuel Cano** - Senior Security Consulting Engineer  
+**Email:** ecanogut@cisco.com  
+**LinkedIn:** https://linkedin.com/in/emmanuel-cano
