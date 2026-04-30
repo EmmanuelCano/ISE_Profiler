@@ -2,6 +2,9 @@
 
 Interactive menu-driven CLI for Cisco ISE 3.5 Profiler OpenAPI operations.
 
+**Author:** Emmanuel Cano - Senior Security Consulting Engineer  
+**Email:** ecanogut@cisco.com
+
 ## Installation
 
 Install dependencies:
@@ -103,22 +106,3 @@ npx -y newman run ISE_Profiler_OpenAPI.postman_collection.json \
   --env-var password=webinar \
   -k --reporters cli
 ```
-
-## Push to GitHub
-
-From the repository root:
-
-```bash
-git status
-git add Security/ise_profiler_menu.py Security/ISE_Profiler_OpenAPI.postman_collection.json Security/ISE_Profiler.postman_environment.json Security/README.md
-git commit -m "Align ISE profiler script and Postman collection; validate full API set"
-git push origin <branch-name>
-```
-
-Suggested pull request summary:
-
-- Synchronizes script and Postman operation contracts.
-- Fixes CUSTOM policy condition payload schema so conditions persist.
-- Fixes policy-status request body schema to array format.
-- Removes unsupported endpoint calls from active operation set.
-- Documents validation and release/push workflow.
