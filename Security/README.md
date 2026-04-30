@@ -1,10 +1,8 @@
-# Security
+# ISE Profiler OpenAPI
 
-Security automation and analysis scripts.
+Interactive menu-driven CLI for Cisco ISE 3.5 Profiler OpenAPI operations.
 
-## WSA/SMA XML Audit
-
-`wsa_sma_xml_audit.py` analyzes Cisco WSA and SMA XML configuration exports and generates a Word report with likely security risks, improvement opportunities, and misconfiguration candidates derived from Cisco best-practice guidance.
+## Installation
 
 Install dependencies:
 
@@ -67,23 +65,6 @@ Notes:
 - Passwords are never written to local files by the script.
 - If you choose to save a password, it is stored in the OS keychain (via `keyring`) rather than plaintext.
 - Saved local profile data only includes non-secret fields such as ISE host and username.
-
-Analyze a single XML export:
-
-```bash
-python3 Security/wsa_sma_xml_audit.py wsa_configurations/proxychainsam01_wsa-adm.scc.corp.xml
-```
-
-Analyze every XML file in a folder and generate one combined report:
-
-```bash
-python3 Security/wsa_sma_xml_audit.py wsa_configurations -o wsa_configurations/wsa_sma_security_assessment.docx
-```
-
-Notes:
-
-- The report is heuristic and should be validated against the live WSA or SMA UI and CLI.
-- XML schemas vary across AsyncOS versions, so findings are based on path and value matching rather than a fixed vendor schema.
 
 ## Pre-Push Checklist (GitHub)
 
