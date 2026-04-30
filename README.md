@@ -27,7 +27,7 @@ python3 -m pip install -r requirements.txt
 ### List available operations:
 
 ```bash
-python3 ise_profiler_menu.py --list
+python3 ise_profiler.py --list
 ```
 
 This displays all 10 supported profiler API operations.
@@ -35,7 +35,7 @@ This displays all 10 supported profiler API operations.
 ### Start the interactive menu:
 
 ```bash
-python3 ise_profiler_menu.py --base-url https://your-ise-host.example.com
+python3 ise_profiler.py --base-url https://your-ise-host.example.com
 ```
 
 You'll be prompted to enter your ISE credentials and can then select operations from the menu.
@@ -43,13 +43,13 @@ You'll be prompted to enter your ISE credentials and can then select operations 
 ### Using with bearer token authentication:
 
 ```bash
-python3 ise_profiler_menu.py --base-url https://your-ise-host.example.com --token YOUR_BEARER_TOKEN
+python3 ise_profiler.py --base-url https://your-ise-host.example.com --token YOUR_BEARER_TOKEN
 ```
 
 ### Automatically retry with insecure TLS:
 
 ```bash
-python3 ise_profiler_menu.py --base-url https://your-ise-host.example.com --auto-retry-insecure
+python3 ise_profiler.py --base-url https://your-ise-host.example.com --auto-retry-insecure
 ```
 
 This is useful if your ISE instance uses self-signed certificates.

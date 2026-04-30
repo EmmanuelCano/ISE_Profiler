@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Cisco ISE Profiler OpenAPI",
-    "description": "Postman collection for Cisco ISE Profiler OpenAPI calls used by ise_profiler_menu.py. Includes end-user descriptions and starter payloads, especially for POST operations.",
+    "description": "Postman collection for Cisco ISE Profiler OpenAPI calls used by ise_profiler.py. Includes end-user descriptions and starter payloads, especially for POST operations.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
