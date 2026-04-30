@@ -1,0 +1,201 @@
+{
+  "info": {
+    "name": "Cisco ISE Profiler OpenAPI",
+    "description": "Postman collection for Cisco ISE Profiler OpenAPI calls used by ise_profiler_menu.py. Includes end-user descriptions and starter payloads, especially for POST operations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "https://10.10.10.10" },
+    { "key": "username", "value": "webinar" },
+    { "key": "password", "value": "webinar" }
+  ],
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{username}}", "type": "string" },
+      { "key": "password", "value": "{{password}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "View custom dictionary keys",
+      "request": {
+        "method": "GET",
+        "description": "Returns custom dictionary keys that can be used to build profiler rules.",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/endpoint-custom-dictionary",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "endpoint-custom-dictionary"]
+        }
+      }
+    },
+    {
+      "name": "View direct dictionary keys",
+      "request": {
+        "method": "GET",
+        "description": "Returns direct dictionary keys for device profiling and direct mapping rules.",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/endpoint-direct-dictionary",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "endpoint-direct-dictionary"]
+        }
+      }
+    },
+    {
+      "name": "List profiler policies",
+      "request": {
+        "method": "GET",
+        "description": "Lists existing profiler policies with optional query filters.",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy"]
+        }
+      }
+    },
+    {
+      "name": "Update a profiler policy",
+      "request": {
+        "method": "PUT",
+        "description": "Updates existing profiler policy content. Body must be a JSON array. Each object must include profilingType and policyId.",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"policyId\": \"REPLACE_WITH_POLICY_ID\",\n    \"profilingType\": \"DIRECT\",\n    \"name\": \"Updated Policy Name\",\n    \"status\": true,\n    \"rulePriority\": 1,\n    \"directMapRules\": [\n      {\n        \"matchedAttribute\": {\"dictionaryName\": \"MDM\", \"attributeValue\": \"mdmManufacturer\"},\n        \"profileLabel\": {\"dictionaryName\": \"Endpoint\", \"attributeValue\": \"MFCInfoEndpointType\"}\n      }\n    ]\n  }\n]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy"]
+        }
+      }
+    },
+    {
+      "name": "Create a direct profiler policy",
+      "request": {
+        "method": "POST",
+        "description": "Creates a DIRECT profiler policy. This endpoint expects an array of policies.",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"name\": \"RuleOne\",\n    \"profilingType\": \"DIRECT\",\n    \"status\": true,\n    \"rulePriority\": 1,\n    \"directMapRules\": [\n      {\n        \"matchedAttribute\": {\n          \"dictionaryName\": \"MDM\",\n          \"attributeValue\": \"mdmManufacturer\"\n        },\n        \"profileLabel\": {\n          \"dictionaryName\": \"Endpoint\",\n          \"attributeValue\": \"MFCInfoEndpointType\"\n        }\n      }\n    ]\n  }\n]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy"]
+        }
+      }
+    },
+    {
+      "name": "Create a custom profiler policy",
+      "request": {
+        "method": "POST",
+        "description": "Creates a CUSTOM profiler policy. This endpoint expects an array of policies.",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"name\": \"CustomPolicySample\",\n    \"profilingType\": \"CUSTOM\",\n    \"status\": true,\n    \"rulePriority\": 10,\n    \"profileLabel\": {\n      \"dictionaryName\": \"Endpoint\",\n      \"attributeValue\": \"MFCInfoEndpointType\"\n    },\n    \"condition\": {\n      \"conditionType\": \"ConditionAndBlock\",\n      \"children\": [\n        {\n          \"conditionType\": \"ConditionAttributes\",\n          \"dictionaryName\": \"DHCP\",\n          \"attributeName\": \"dhcpHostName\",\n          \"attributeValue\": \"dhcpHostName\",\n          \"operator\": \"contains\",\n          \"value\": \"corp\"\n        }\n      ]\n    }\n  }\n]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy"]
+        }
+      }
+    },
+    {
+      "name": "Delete a policy by ID",
+      "request": {
+        "method": "DELETE",
+        "description": "Deletes profiler policy IDs. Pass an array of policy ID strings in the JSON request body. No query parameters are used — the IDs must be in the body.",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  \"REPLACE_WITH_POLICY_ID\"\n]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy"]
+        }
+      }
+    },
+    {
+      "name": "Export profiler policies",
+      "request": {
+        "method": "GET",
+        "description": "Exports profiler policy data in JSON.",
+        "header": [
+          { "key": "Accept", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy-export",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy-export"]
+        }
+      }
+    },
+    {
+      "name": "Enable or disable a policy",
+      "request": {
+        "method": "PUT",
+        "description": "Enables or disables policy status. Body must be an array of objects with policyId and boolean status.",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "[\n  {\n    \"policyId\": \"REPLACE_WITH_POLICY_ID\",\n    \"status\": true\n  }\n]"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy-status",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy-status"]
+        }
+      }
+    },
+    {
+      "name": "Check for duplicate policy condition",
+      "request": {
+        "method": "POST",
+        "description": "Checks if a candidate condition duplicates existing profiler logic. Use ConditionAndBlock with children for CUSTOM policies.",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"profilingType\": \"CUSTOM\",\n  \"condition\": {\n    \"conditionType\": \"ConditionAndBlock\",\n    \"children\": [\n      {\n        \"conditionType\": \"ConditionAttributes\",\n        \"dictionaryName\": \"DHCP\",\n        \"attributeName\": \"dhcpHostName\",\n        \"attributeValue\": \"dhcpHostName\",\n        \"operator\": \"contains\",\n        \"value\": \"corp\"\n      }\n    ]\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/profiler/policy/duplicate-check",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "profiler", "policy", "duplicate-check"]
+        }
+      }
+    }
+  ]
+}
