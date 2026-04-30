@@ -1,108 +1,100 @@
 # ISE Profiler OpenAPI
 
-Interactive menu-driven CLI for Cisco ISE 3.5 Profiler OpenAPI operations.
+An interactive menu-driven CLI tool for managing Cisco ISE 3.5 Profiler policies and operations. This tool simplifies interactions with the Cisco ISE Profiler OpenAPI by providing an intuitive interface to view, create, update, and delete profiling policies without complex REST API calls.
+
+## Features
+
+- **Interactive menu interface** - Navigate through operations using a user-friendly menu
+- **Policy management** - Create, update, delete, and list profiling policies
+- **Multiple authentication methods** - Support for Basic Auth and Bearer tokens
+- **Secure credential storage** - Passwords stored in OS keychain (not plaintext)
+- **Postman integration** - Includes pre-built Postman collection for API testing
+- **Flexible connectivity** - Works with both fully-qualified domain names and IP addresses
+- **TLS retry capability** - Automatic retry with insecure mode if needed
 
 ## Installation
 
-Install dependencies:
+Clone the repository and install dependencies:
 
 ```bash
+git clone https://github.com/ecanogut_cisco/ISE_Profiler.git
+cd ISE_Profiler
 python3 -m pip install -r requirements.txt
 ```
 
-## ISE Profiler Menu
+## Usage
 
-`ise_profiler_menu.py` provides an interactive menu for the Cisco ISE 3.5 profiler OpenAPI operations exposed in the DevNet Profiler OpenAPI documentation.
-
-List the supported profiler operations:
+### List available operations:
 
 ```bash
 python3 ise_profiler_menu.py --list
 ```
 
-Run the interactive menu:
+This displays all 10 supported profiler API operations.
+
+### Start the interactive menu:
 
 ```bash
-python3 ise_profiler_menu.py --base-url https://ise.example.com
+python3 ise_profiler_menu.py --base-url https://your-ise-host.example.com
 ```
 
-Automatically retry with insecure TLS if certificate validation fails:
+You'll be prompted to enter your ISE credentials and can then select operations from the menu.
+
+### Using with bearer token authentication:
 
 ```bash
-python3 ise_profiler_menu.py --ise-ip 10.10.10.10 --username webinar --auto-retry-insecure
+python3 ise_profiler_menu.py --base-url https://your-ise-host.example.com --token YOUR_BEARER_TOKEN
 ```
 
-Use a bearer token instead of Basic authentication:
+### Automatically retry with insecure TLS:
 
 ```bash
-python3 ise_profiler_menu.py --base-url https://ise.example.com --token YOUR_TOKEN
+python3 ise_profiler_menu.py --base-url https://your-ise-host.example.com --auto-retry-insecure
 ```
 
-Import-ready Postman collection:
+This is useful if your ISE instance uses self-signed certificates.
 
-- File: `ISE_Profiler_OpenAPI.postman_collection.json`
-- Environment file: `ISE_Profiler.postman_environment.json`
-- Set collection/environment variables before running requests: `baseUrl`, `username`, `password`.
-- Collection currently contains 10 validated profiler requests (all tested successfully on 2026-05-01).
+## Postman Integration
 
-Test directly with ISE host/IP prompt flow:
+A Postman collection is included for API testing and documentation:
 
-```bash
-python3 ise_profiler_menu.py
-```
+- **Collection**: `ISE_Profiler_OpenAPI.postman_collection.json` (10 profiler endpoints)
+- **Environment**: `ISE_Profiler.postman_environment.json` (variables and credentials)
 
-Profiler API validation status (2026-05-01):
+To use with Postman:
+1. Import both the collection and environment into Postman
+2. Update the environment variables: `baseUrl`, `username`, `password`
+3. Run requests directly or use Newman for automation
 
-- Tested against `https://192.168.2.10` with `admin` credentials.
-- Result: `10/10` requests passed.
-- Script and Postman collection are synchronized by method/path for all operations.
-- Operation coverage: custom dictionary, direct dictionary, list policy, update policy, create direct policy, create custom policy, delete policy, export policy, update policy status, duplicate-check.
+## Supported Operations
 
-Notes:
+The tool supports 10 profiler API operations:
 
-- The menu is seeded from profiler operations and updated to match live payload behavior.
-- For write operations, the script prompts for JSON so you can supply the exact payload required by your ISE deployment.
-- Passwords are never written to local files by the script.
-- If you choose to save a password, it is stored in the OS keychain (via `keyring`) rather than plaintext.
-- Saved local profile data only includes non-secret fields such as ISE host and username.
+1. View custom dictionary keys
+2. View direct dictionary keys
+3. List profiler policies
+4. Update profiler policy
+5. Create custom profiler policy
+6. Create direct profiler policy
+7. Delete profiler policy by ID
+8. Export profiler policies
+9. Enable/disable profiler policy
+10. Check for duplicate policy conditions
 
-## Pre-Push Checklist (GitHub)
+## How It Works
 
-Use this checklist before pushing updates to the repository.
+- **Interactive prompts** - The script guides you through each operation with clear prompts
+- **JSON payload generation** - For complex operations, you can provide or modify JSON payloads
+- **Live preview** - Before executing, you can review the request being sent
+- **Profile persistence** - Your ISE connection details are saved locally (credentials stored securely)
+- **Error handling** - Clear error messages help troubleshoot connectivity or API issues
 
-1. Validate Python script syntax:
+## Security Notes
 
-```bash
-python3 -m py_compile ise_profiler_menu.py
-```
-
-2. Validate Postman JSON files:
-
-```bash
-python3 - <<'PY'
-import json
-from pathlib import Path
-json.loads(Path('ISE_Profiler_OpenAPI.postman_collection.json').read_text())
-json.loads(Path('ISE_Profiler.postman_environment.json').read_text())
-print('Postman JSON validation: OK')
-PY
-```
-
-3. Run a smoke test from the script:
-
-```bash
-python3 ise_profiler_menu.py --ise-ip 10.10.10.10 --username webinar --insecure
-```
-
-4. Optional: run collection requests with Newman:
-
-```bash
-npx -y newman run ISE_Profiler_OpenAPI.postman_collection.json \
-  --env-var baseUrl=https://10.10.10.10 \
-  --env-var username=webinar \
-  --env-var password=webinar \
-  -k --reporters cli
-```
+- Passwords are never saved to disk in plaintext
+- If you choose password storage, it uses your OS keychain (macOS Keychain, Windows Credential Manager, or Linux Secret Service)
+- Saved profiles only store ISE hostname and username
+- Token-based authentication is supported for enhanced security
 
 ---
 
