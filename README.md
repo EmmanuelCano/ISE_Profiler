@@ -7,7 +7,7 @@ Interactive menu-driven CLI for Cisco ISE 3.5 Profiler OpenAPI operations.
 Install dependencies:
 
 ```bash
-python3 -m pip install -r Security/requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 ## ISE Profiler Menu
@@ -17,38 +17,38 @@ python3 -m pip install -r Security/requirements.txt
 List the supported profiler operations:
 
 ```bash
-python3 Security/ise_profiler_menu.py --list
+python3 ise_profiler_menu.py --list
 ```
 
 Run the interactive menu:
 
 ```bash
-python3 Security/ise_profiler_menu.py --base-url https://ise.example.com
+python3 ise_profiler_menu.py --base-url https://ise.example.com
 ```
 
 Automatically retry with insecure TLS if certificate validation fails:
 
 ```bash
-python3 Security/ise_profiler_menu.py --ise-ip 10.10.10.10 --username webinar --auto-retry-insecure
+python3 ise_profiler_menu.py --ise-ip 10.10.10.10 --username webinar --auto-retry-insecure
 ```
 
 Use a bearer token instead of Basic authentication:
 
 ```bash
-python3 Security/ise_profiler_menu.py --base-url https://ise.example.com --token YOUR_TOKEN
+python3 ise_profiler_menu.py --base-url https://ise.example.com --token YOUR_TOKEN
 ```
 
 Import-ready Postman collection:
 
-- File: `Security/ISE_Profiler_OpenAPI.postman_collection.json`
-- Environment file: `Security/ISE_Profiler.postman_environment.json`
+- File: `ISE_Profiler_OpenAPI.postman_collection.json`
+- Environment file: `ISE_Profiler.postman_environment.json`
 - Set collection/environment variables before running requests: `baseUrl`, `username`, `password`.
 - Collection currently contains 10 validated profiler requests (all tested successfully on 2026-05-01).
 
 Test directly with ISE host/IP prompt flow:
 
 ```bash
-python3 Security/ise_profiler_menu.py
+python3 ise_profiler_menu.py
 ```
 
 Profiler API validation status (2026-05-01):
@@ -73,7 +73,7 @@ Use this checklist before pushing updates to the repository.
 1. Validate Python script syntax:
 
 ```bash
-python3 -m py_compile Security/ise_profiler_menu.py
+python3 -m py_compile ise_profiler_menu.py
 ```
 
 2. Validate Postman JSON files:
@@ -82,8 +82,8 @@ python3 -m py_compile Security/ise_profiler_menu.py
 python3 - <<'PY'
 import json
 from pathlib import Path
-json.loads(Path('Security/ISE_Profiler_OpenAPI.postman_collection.json').read_text())
-json.loads(Path('Security/ISE_Profiler.postman_environment.json').read_text())
+json.loads(Path('ISE_Profiler_OpenAPI.postman_collection.json').read_text())
+json.loads(Path('ISE_Profiler.postman_environment.json').read_text())
 print('Postman JSON validation: OK')
 PY
 ```
@@ -91,13 +91,13 @@ PY
 3. Run a smoke test from the script:
 
 ```bash
-python3 Security/ise_profiler_menu.py --ise-ip 10.10.10.10 --username webinar --insecure
+python3 ise_profiler_menu.py --ise-ip 10.10.10.10 --username webinar --insecure
 ```
 
 4. Optional: run collection requests with Newman:
 
 ```bash
-npx -y newman run Security/ISE_Profiler_OpenAPI.postman_collection.json \
+npx -y newman run ISE_Profiler_OpenAPI.postman_collection.json \
   --env-var baseUrl=https://10.10.10.10 \
   --env-var username=webinar \
   --env-var password=webinar \
