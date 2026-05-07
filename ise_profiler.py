@@ -4,7 +4,6 @@ import argparse
 import copy
 import getpass
 import json
-import os
 import sys
 import warnings
 from dataclasses import dataclass, field
@@ -15,13 +14,6 @@ warnings.filterwarnings(
     "ignore",
     message=r"urllib3 v2 only supports OpenSSL 1\.1\.1\+, currently the 'ssl' module is compiled with 'LibreSSL.*",
 )
-
-try:
-    import keyring
-    from keyring.errors import KeyringError
-except ImportError:
-    keyring = None
-    KeyringError = Exception
 
 import requests
 import urllib3
@@ -35,7 +27,6 @@ except ImportError:
 
 DEFAULT_TIMEOUT = 60
 APP_NAME = "cisco-ise-profiler-menu"
-PROFILE_PATH = Path.home() / ".config" / APP_NAME / "profiles.json"
 
 DIRECT_POLICY_EXAMPLE = [
     {
@@ -318,48 +309,6 @@ def normalize_base_url(value: str) -> str:
     return f"https://{stripped.rstrip('/')}"
 
 
-def profile_service_name(profile: ConnectionProfile, username: str) -> str:
-    return f"{APP_NAME}:{profile.profile_name}:{username}"
-
-
-def load_profiles() -> dict[str, dict[str, str]]:
-    if not PROFILE_PATH.exists():
-        return {}
-    try:
-        return json.loads(PROFILE_PATH.read_text())
-    except (OSError, ValueError):
-        return {}
-
-
-def save_profiles(profiles: dict[str, dict[str, str]]) -> None:
-    PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    PROFILE_PATH.write_text(json.dumps(profiles, indent=2))
-    os.chmod(PROFILE_PATH, 0o600)
-
-
-def upsert_profile(profile: ConnectionProfile) -> None:
-    profiles = load_profiles()
-    profiles[profile.profile_name] = {
-        "ise_host": profile.ise_host,
-        "username": profile.username or "",
-        "base_url": profile.base_url or "",
-    }
-    save_profiles(profiles)
-
-
-def list_profiles() -> list[ConnectionProfile]:
-    profiles = []
-    for entry in load_profiles().values():
-        profiles.append(
-            ConnectionProfile(
-                ise_host=entry.get("ise_host", ""),
-                username=entry.get("username") or None,
-                base_url=entry.get("base_url") or None,
-            )
-        )
-    return sorted(profiles, key=lambda item: item.profile_name)
-
-
 def prompt_yes_no(label: str, default: bool = True) -> bool:
     prompt = "Y/n" if default else "y/N"
     while True:
@@ -373,26 +322,6 @@ def prompt_yes_no(label: str, default: bool = True) -> bool:
         print("Enter y or n.")
 
 
-def choose_saved_profile() -> Optional[ConnectionProfile]:
-    profiles = list_profiles()
-    if not profiles:
-        return None
-    print("Saved ISE profiles")
-    for index, profile in enumerate(profiles, start=1):
-        username = profile.username or "<no username saved>"
-        print(f"  {index}. {profile.profile_name} ({username})")
-    print("  n. Enter a new ISE host/profile")
-    while True:
-        choice = input("Choose a saved profile or n: ").strip().lower()
-        if choice == "n":
-            return None
-        if choice.isdigit():
-            selected = int(choice)
-            if 1 <= selected <= len(profiles):
-                return profiles[selected - 1]
-        print("Invalid selection.")
-
-
 def prompt_connection_profile(args: argparse.Namespace) -> ConnectionProfile:
     if args.base_url:
         host = args.ise_ip or args.base_url
@@ -401,32 +330,8 @@ def prompt_connection_profile(args: argparse.Namespace) -> ConnectionProfile:
     if args.ise_ip:
         return ConnectionProfile(ise_host=args.ise_ip, username=args.username)
 
-    selected_profile = choose_saved_profile() if list_profiles() else None
-    if selected_profile is not None:
-        return selected_profile
-
     ise_host = prompt_non_empty("ISE IP address or hostname")
     return ConnectionProfile(ise_host=ise_host, username=args.username)
-
-
-def get_stored_password(profile: ConnectionProfile, username: str) -> Optional[str]:
-    if keyring is None:
-        return None
-    try:
-        return keyring.get_password(profile_service_name(profile, username), username)
-    except KeyringError:
-        return None
-
-
-def store_password(profile: ConnectionProfile, username: str, password: str) -> None:
-    if keyring is None:
-        print("Password storage skipped because the keyring package is not available.")
-        return
-    try:
-        keyring.set_password(profile_service_name(profile, username), username, password)
-        print("Password stored in the system keychain.")
-    except KeyringError as exc:
-        print(f"Password could not be stored in the system keychain: {exc}")
 
 
 def print_operations() -> None:
@@ -476,16 +381,21 @@ def save_get_response(operation: ApiOperation, response_data: any) -> Optional[s
     try:
         output_dir = Path.home() / ".config" / APP_NAME / "responses"
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create filename from operation ID and timestamp
         from datetime import datetime
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"response_{operation.id}_{timestamp}.json"
+        is_text = isinstance(response_data, str)
+        ext = "txt" if is_text else "json"
+        filename = f"response_{operation.id}_{timestamp}.{ext}"
         filepath = output_dir / filename
-        
+
         with open(filepath, 'w') as f:
-            json.dump(response_data, f, indent=2)
-        
+            if is_text:
+                f.write(response_data)
+            else:
+                json.dump(response_data, f, indent=2)
+
         return str(filepath)
     except Exception as e:
         print(f"Warning: Could not save response to file: {e}")
@@ -623,29 +533,11 @@ def build_session(args: argparse.Namespace, profile: ConnectionProfile) -> reque
         password = args.password
         if args.password:
             print("Warning: passing --password on the command line can expose secrets in shell history.")
-            print("Prefer interactive entry and optional system keychain storage.")
-        if password is None:
-            password = get_stored_password(profile, username)
+            print("Prefer interactive entry instead.")
         if password is None:
             password = prompt_non_empty("ISE password", secret=True)
-            if prompt_yes_no("Store the password in the system keychain", default=True):
-                store_password(profile, username, password)
-        if prompt_yes_no("Remember the ISE host and username for future runs", default=True):
-            upsert_profile(ConnectionProfile(ise_host=profile.ise_host, username=username, base_url=profile.base_url))
         session.auth = (username, password)
     return session
-
-
-def preview_request(method: str, url: str, params: dict[str, str], body: Optional[dict]) -> None:
-    print()
-    print("Request preview")
-    print(f"  Method: {method}")
-    print(f"  URL:    {url}")
-    if params:
-        print(f"  Query:  {json.dumps(params, indent=2)}")
-    if body is not None:
-        print(f"  Body:   {json.dumps(body, indent=2)}")
-    print()
 
 
 def _send_request(
@@ -690,18 +582,9 @@ def execute_operation(
     auto_retry_insecure: bool,
 ) -> bool:
     url = f"{base_url.rstrip('/')}{operation.path}"
-    print()
-    friendly = operation.friendly_name or operation.summary
-    print(f"Selected: {friendly}")
-    print(f"Method:   {operation.method} {operation.path}")
-    if operation.description:
-        print(f"Purpose:  {operation.description}")
-    if operation.notes:
-        print(f"Notes:    {operation.notes}")
-    print()
 
     params = dict(operation.default_query)
-    
+
     # Only prompt for query parameters if operation requires them
     if operation.requires_query_params:
         extra_params = prompt_query_params()
@@ -709,43 +592,43 @@ def execute_operation(
 
     body = prompt_body_for_operation(operation)
 
-    preview_request(operation.method, url, params, body)
-    print("Sending request...")  # No confirmation prompt
-
     verify, response = _send_request(session, operation.method, url, params, body, timeout, verify)
-    
-    if response is None:
-        return verify
 
     print()
-    print(f"HTTP {response.status_code}")
-    content_type = response.headers.get("Content-Type", "")
-    if "application/json" in content_type:
-        try:
-            json_data = response.json()
-            
-            # For GET requests, save the full response and show only first item
-            if operation.method == "GET":
-                filepath = save_get_response(operation, json_data)
-                if filepath:
-                    print(f"\n✓ Full response saved to: {filepath}")
-                
-                # Show only first result in JSON format
-                if isinstance(json_data, list) and json_data:
-                    display_data = json_data[0]
-                    print("\nFirst result (JSON format):")
-                else:
-                    display_data = json_data
-                
-                print(json.dumps(display_data, indent=2))
-            else:
-                # For non-GET requests, use table format
-                formatted = json_to_table(json_data)
-                print(formatted)
-        except ValueError:
-            print(response.text)
-    else:
-        print(response.text)
+    if response is None:
+        print("Failed: no response received")
+        print()
+        return verify
+
+    status = "Successful" if response.ok else "Failed"
+    print(f"HTTP {response.status_code} - {status}")
+
+    # For selected GET operations, also display the API response payload.
+    if response.ok and operation.id in {1, 2, 3, 7}:
+        content_type = response.headers.get("Content-Type", "")
+        json_data = None
+        if "application/json" in content_type:
+            try:
+                json_data = response.json()
+            except ValueError:
+                json_data = None
+
+        print()
+        print("API response:")
+        if json_data is not None:
+            print(json.dumps(json_data, indent=2))
+        else:
+            # Try parsing the text as JSON anyway (e.g. file-export endpoints set octet-stream)
+            try:
+                json_data = json.loads(response.text)
+                print(json.dumps(json_data, indent=2))
+            except (ValueError, TypeError):
+                print(response.text)
+
+        saved_path = save_get_response(operation, json_data if json_data is not None else response.text)
+        if saved_path:
+            print()
+            print(f"Response saved to: {saved_path}")
     print()
     return verify
 

@@ -1,13 +1,13 @@
 {
   "info": {
     "name": "Cisco ISE Profiler OpenAPI",
-    "description": "Postman collection for Cisco ISE Profiler OpenAPI calls used by ise_profiler.py. Includes end-user descriptions and starter payloads, especially for POST operations.",
+    "description": "Postman collection for Cisco ISE Profiler OpenAPI calls used by ise_profiler.py.\n\nUI behavior matches the CLI script: each request returns only the HTTP status code with a Successful/Failed message in the Postman Console (see the collection-level Test script). Response bodies are still available in the Postman Body tab if you need them.\n\nIMPORTANT - ISE admin lockout warning:\nCisco ISE enforces an account-suspension policy on admin accounts after a configurable number of consecutive failed login attempts (Administration > System > Admin Access > Authentication > Lock/Suspend). Repeatedly running these requests with an INCORRECT password will lock or disable the configured admin user. Always verify the password before running the collection. The collection-level Pre-request Script aborts the request when the username/password environment variables are empty or still set to the default placeholder value to help prevent accidental lockouts.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "baseUrl", "value": "https://10.10.10.10" },
-    { "key": "username", "value": "webinar" },
-    { "key": "password", "value": "webinar" }
+    { "key": "username", "value": "" },
+    { "key": "password", "value": "" }
   ],
   "auth": {
     "type": "basic",
@@ -16,6 +16,44 @@
       { "key": "password", "value": "{{password}}", "type": "string" }
     ]
   },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Guard against sending Basic Auth with empty or default placeholder credentials.",
+          "// Cisco ISE will lock or suspend the admin account after repeated failed logins.",
+          "var user = pm.variables.get('username');",
+          "var pass = pm.variables.get('password');",
+          "var placeholders = ['', 'REPLACE_ME', 'changeme'];",
+          "if (!user || placeholders.indexOf(String(user)) !== -1) {",
+          "    throw new Error('Refusing to send: username variable is empty or still set to a default placeholder. Update the environment before running to avoid ISE admin account lockout.');",
+          "}",
+          "if (!pass || placeholders.indexOf(String(pass)) !== -1) {",
+          "    throw new Error('Refusing to send: password variable is empty or still set to a default placeholder. Update the environment before running to avoid ISE admin account lockout.');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Mirror the CLI script: only print HTTP code with Successful or Failed.",
+          "var ok = pm.response.code >= 200 && pm.response.code < 300;",
+          "console.log('HTTP ' + pm.response.code + ' - ' + (ok ? 'Successful' : 'Failed'));",
+          "if (pm.response.code === 401 || pm.response.code === 403) {",
+          "    console.warn('Authentication failed. Stop running this request to avoid ISE admin account lockout. Verify the username and password environment variables before retrying.');",
+          "}",
+          "pm.test('HTTP ' + pm.response.code + ' - ' + (ok ? 'Successful' : 'Failed'), function () {",
+          "    pm.expect(ok).to.be.true;",
+          "});"
+        ]
+      }
+    }
+  ],
   "item": [
     {
       "name": "View custom dictionary keys",
