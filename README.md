@@ -17,7 +17,7 @@ An interactive menu-driven CLI tool for managing Cisco ISE 3.5 Profiler policies
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/ecanogut_cisco/ISE_Profiler.git
+git clone https://github.com/EmmanuelCano/ISE_Profiler.git
 cd ISE_Profiler
 python3 -m pip install -r requirements.txt
 ```
